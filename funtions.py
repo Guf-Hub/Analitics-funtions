@@ -6,6 +6,8 @@ import glob
 import csv
 from datetime import datetime, timedelta, timezone
 import pytz
+import os
+import shutil
 
 
 def write_csv(file_name: str, row):
@@ -132,39 +134,50 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
         return list(set(result))
 
 
-def list_checker(check_list: (list, tuple), check_value: int, comparison_type: int = 1):
+def list_filter(filter_list: (list, tuple), filter_value: int = None, filter_type: int = 1, even: int = None):
     """Фильтрация списка чисел по занчению
 
-    :param check_list: список значений
-    :param check_value: значение для сравнения
-    :param comparison_type: тип сравнения: 1 !=, 2 ==, 3 >, 4 >=, 5 <, 6 <=
+    :param filter_list: список значений
+    :param filter_value: значение для сравнения
+    :param filter_type: тип сравнения: 1 ==, 2 !=, 3 >, 4 >=, 5 <, 6 <=
+    :param even: отбор чисел из списка: 1 четные, 2 не четные
     """
 
+    if even == 1:
+        return list(int(y) for y in filter(lambda x: ('' if x is None else int(x) % 2 == 0), filter_list))
+    elif even == 2:
+        return list(int(y) for y in filter(lambda x: ('' if x is None else int(x) % 2 != 0), filter_list))
+
     new_list = []
-    for el in check_list:
+    for el in filter_list:
 
-        if comparison_type == 1:
-            if el != check_value:
+        if el is not None:
+            el = int(el)
+        else:
+            continue
+
+        if filter_type == 1:
+            if el == filter_value:
                 new_list.append(el)
 
-        elif comparison_type == 2:
-            if el == check_value:
+        elif filter_type == 2:
+            if el != filter_value:
                 new_list.append(el)
 
-        elif comparison_type == 3:
-            if el > check_value:
+        elif filter_type == 3:
+            if el > filter_value:
                 new_list.append(el)
 
-        elif comparison_type == 4:
-            if el >= check_value:
+        elif filter_type == 4:
+            if el >= filter_value:
                 new_list.append(el)
 
-        elif comparison_type == 5:
-            if el < check_value:
+        elif filter_type == 5:
+            if el < filter_value:
                 new_list.append(el)
 
-        elif comparison_type == 6:
-            if el <= check_value:
+        elif filter_type == 6:
+            if el <= filter_value:
                 new_list.append(el)
 
     return new_list
@@ -185,20 +198,20 @@ def divide_list(list_string: list[str, int], size: int) -> list:
     return divide(number_list, size)
 
 
-def make_list_flat(old_list):
+def list_flatten(old_list):
     """Перевести вложенный список в плоский"""
 
     new_list = []
     for x in old_list:
         if isinstance(x, (list, tuple)):
-            new_list += make_list_flat(x)
+            new_list += list_flatten(x)
         else:
             new_list.append(x)
     return new_list
 
 
 def current_datetime(days: int = 0, hours: int = 0, minutes: int = 0, tz: str = "Europe/Moscow") -> datetime:
-    """Возвращает сегодняшний datetime с учётом времненной зоны, по умолчанию tz Мск."""
+    """Возвращает текущий datetime с учётом времненной зоны, по умолчанию tz Мск."""
 
     delta = timedelta(days=days, hours=hours, minutes=minutes)
     tz = pytz.timezone(tz)
@@ -207,7 +220,7 @@ def current_datetime(days: int = 0, hours: int = 0, minutes: int = 0, tz: str = 
 
 
 def current_datetime_formatted(str_type: int = None, minus_days: int = 0, plus_days: int = 0) -> str:
-    """Возвращает сегодняшнюю дату строкой"""
+    """Возвращает текущую дату строкой"""
 
     if str_type == 1:
         ft = '%d.%m.%Y'
@@ -252,5 +265,28 @@ def seconds_to_time(seconds: int, time_format: str = 'short') -> str:
         return "%02d:%02d" % (hours, minutes)
 
 
+def create_directory(file_path: str) -> None:
+    """Функция для создания директории file_path: str путь до файла"""
+    if not os.path.exists(file_path):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path)
+        try:
+            os.makedirs(path)
+            print(f'INFO: создали > {file_path}')
+        except Exception as e:
+            print(f'WARNING: {path} > {e}')
+
+
+def clear_directory(file_path: str) -> None:
+    """Функция удаляющая данные из папки file_path: str путь до файла"""
+    if os.path.exists(file_path):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path)
+        try:
+            shutil.rmtree(path)
+            print(f'INFO: очистили > {path}')
+        except FileExistsError as e:
+            print(f'WARNING: {path} > {e}')
+
+
 if __name__ == '__main__':
-    print(divide_list([89264771362, '45555', 45646666, 'fds5555'], 1))
+    print(list_filter(['1', 2, 3, 4, 5, 6, 7, '8', 9, 0, None], even=2))
+    print(sum(list_filter(['1', 2, 3, 4, 5, 6, 7, '8', 9, 0, None], even=2)))
