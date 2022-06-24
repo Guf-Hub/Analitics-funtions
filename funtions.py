@@ -134,6 +134,44 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
         return list(set(result))
 
 
+def get_url(string: str):
+    """Получить url из строки
+
+    :param string: строка с url
+    """
+
+    url_pattern = "https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+    www_pattern = "www\\.?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+    without_protocol_pattern = "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+
+    if string.find('http') > 0:
+        return re.findall(url_pattern, string)
+    elif string.find('www') > 0:
+        return re.findall(www_pattern, string)
+    else:
+        return re.findall(without_protocol_pattern, string)
+
+
+def get_date(string: str, date_type: int = 1):
+    """Получить дату из строки
+
+    :param string: строка с датами
+    :param date_type: 1 (DD/MM/YYYY), 2 (DD.MM.YYYY), 3 ISO 8061 (2021-11-04T22:32:47.142354-10:00)
+    """
+    us = "[0-9]{1,2}\\/[0-9]{1,2}\\/[0-9]{4}"
+    ru = "[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}"
+    iso = "(?:\\d{4})-(?:\\d{2})-(?:\\d{2})T(?:\\d{2}):(?:\\d{2}):(?:\\d{2}(?:\\.\\d*)?)(?:(?:-(?:\\d{2}):(?:\\d{2})|Z)?)"
+
+    if date_type == 1:
+        return re.findall(us, string)
+
+    elif date_type == 2:
+        return re.findall(ru, string)
+
+    elif date_type == 3:
+        return re.findall(iso, string)
+
+
 def list_filter(filter_list: (list, tuple), filter_value: int = None, filter_type: int = 1, even: int = None):
     """Фильтрация списка чисел по занчению
 
@@ -288,5 +326,4 @@ def clear_directory(file_path: str) -> None:
 
 
 if __name__ == '__main__':
-    print(list_filter(['1', 2, 3, 4, 5, 6, 7, '8', 9, 0, None], even=2))
-    print(sum(list_filter(['1', 2, 3, 4, 5, 6, 7, '8', 9, 0, None], even=2)))
+    print(get_url('You can view more details www.leningrad.ru .'))
