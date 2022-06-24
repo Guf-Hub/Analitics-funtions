@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 import pytz
 import os
 import shutil
+from string import digits
 
 
 def write_csv(file_name: str, row):
@@ -50,7 +51,7 @@ def phone_cleaner(phone: [str, int], prefix: str = '7'):
 
     clear_phone = ''
     for digit in str(phone):
-        if digit in '1,2,3,4,5,6,7,8,9,0':
+        if digit in digits:
             clear_phone += digit
 
     if len(clear_phone) != 11:
@@ -140,9 +141,9 @@ def get_url(string: str):
     :param string: строка с url
     """
 
-    url_pattern = "https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
-    www_pattern = "www\\.?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
-    without_protocol_pattern = "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+    url_pattern = 'https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)'
+    www_pattern = 'www\\.?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)'
+    without_protocol_pattern = '[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)'
 
     if string.find('http') > 0:
         return re.findall(url_pattern, string)
@@ -158,9 +159,9 @@ def get_date(string: str, date_type: int = 1):
     :param string: строка с датами
     :param date_type: 1 (DD/MM/YYYY), 2 (DD.MM.YYYY), 3 ISO 8061 (2021-11-04T22:32:47.142354-10:00)
     """
-    us = "[0-9]{1,2}\\/[0-9]{1,2}\\/[0-9]{4}"
-    ru = "[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}"
-    iso = "(?:\\d{4})-(?:\\d{2})-(?:\\d{2})T(?:\\d{2}):(?:\\d{2}):(?:\\d{2}(?:\\.\\d*)?)(?:(?:-(?:\\d{2}):(?:\\d{2})|Z)?)"
+    us = '[0-9]{1,2}\\/[0-9]{1,2}\\/[0-9]{4}'
+    ru = '[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}'
+    iso = '(?:\\d{4})-(?:\\d{2})-(?:\\d{2})T(?:\\d{2}):(?:\\d{2}):(?:\\d{2}(?:\\.\\d*)?)(?:(?:-(?:\\d{2}):(?:\\d{2})|Z)?)'
 
     if date_type == 1:
         return re.findall(us, string)
@@ -298,9 +299,9 @@ def seconds_to_time(seconds: int, time_format: str = 'short') -> str:
     minutes = seconds // 60
     seconds %= 60
     if time_format == 'long':
-        return "%02d:%02d:%02d" % (hours, minutes, seconds)
+        return '%02d:%02d:%02d' % (hours, minutes, seconds)
     if time_format == 'short':
-        return "%02d:%02d" % (hours, minutes)
+        return '%02d:%02d' % (hours, minutes)
 
 
 def create_directory(file_path: str) -> None:
@@ -327,3 +328,4 @@ def clear_directory(file_path: str) -> None:
 
 if __name__ == '__main__':
     print(get_url('You can view more details www.leningrad.ru .'))
+    print(phone_cleaner('8926 477-13-62'))
