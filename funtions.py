@@ -4,6 +4,8 @@
 import re
 import glob
 import csv
+from datetime import datetime, timedelta, timezone
+import pytz
 
 
 def write_csv(file_name: str, row):
@@ -37,7 +39,7 @@ def get_and_save_phones(file_name: str, save_as: str = 'phones.csv'):
         write_csv(file_name=save_as, row=item)
 
 
-def phone_cleaner(phone: str, prefix: str = '7'):
+def phone_cleaner(phone: [str, int], prefix: str = '7'):
     """Функция очистки номера сотового телефона от лишних символов, с заменой первой цифры.
 
     :param phone: строка с номером телефона
@@ -45,7 +47,7 @@ def phone_cleaner(phone: str, prefix: str = '7'):
     """
 
     clear_phone = ''
-    for digit in phone:
+    for digit in str(phone):
         if digit in '1,2,3,4,5,6,7,8,9,0':
             clear_phone += digit
 
@@ -84,13 +86,15 @@ def get_phones(string: str = None, file_name: str = None) -> list:
         return list(set(result))
 
 
-def get_mails(string: str = None, single: bool = False, regex: bool = False, file_name: str = None):
+def get_mails(string: str = None, single: bool = False, regex: bool = False, file_name: str = None,
+              file_type: str = 'txt'):
     """Получение e-mail из текстовой строки или файла(-ов)
 
     :param string: строка текста
     :param single: поиск первого значения
     :param regex: True используется re для поиска в строке, False find
     :param file_name: путь к файлу, для поиска в файле
+    :param file_type: расширение файлов для поиска, при использовании glob, по умолчанию `txt`
     """
 
     mails = []
@@ -117,7 +121,7 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
             return list(set(re.findall(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+', file_text)))
 
     else:
-        for file in glob.glob('*.txt'):
+        for file in glob.glob(f'*.{file_type}'):
             with open(file, 'r') as f:
                 file_text = f.read()
                 mails.append(re.findall(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+', file_text))
@@ -128,5 +132,125 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
         return list(set(result))
 
 
+def list_checker(check_list: (list, tuple), check_value: int, comparison_type: int = 1):
+    """Фильтрация списка чисел по занчению
+
+    :param check_list: список значений
+    :param check_value: значение для сравнения
+    :param comparison_type: тип сравнения: 1 !=, 2 ==, 3 >, 4 >=, 5 <, 6 <=
+    """
+
+    new_list = []
+    for el in check_list:
+
+        if comparison_type == 1:
+            if el != check_value:
+                new_list.append(el)
+
+        elif comparison_type == 2:
+            if el == check_value:
+                new_list.append(el)
+
+        elif comparison_type == 3:
+            if el > check_value:
+                new_list.append(el)
+
+        elif comparison_type == 4:
+            if el >= check_value:
+                new_list.append(el)
+
+        elif comparison_type == 5:
+            if el < check_value:
+                new_list.append(el)
+
+        elif comparison_type == 6:
+            if el <= check_value:
+                new_list.append(el)
+
+    return new_list
+
+
+def unique(file_name: str):
+    """Функция удаляющая дубли в переданном файле"""
+
+    unique_lines = set(open(file_name, 'r', encoding='utf-8').readlines())
+    open(file_name, 'w', encoding='utf-8').writelines(set(unique_lines))
+
+
+def divide_list(list_string: list[str, int], size: int) -> list:
+    """Функция возвращающая массив чисел разделенный на равные части"""
+
+    divide = lambda lst, sz: [lst[i:i + sz] for i in range(0, len(lst), sz)]
+    number_list = [int(numeric_string) for numeric_string in list_string if int(numeric_string)]
+    return divide(number_list, size)
+
+
+def make_list_flat(old_list):
+    """Перевести вложенный список в плоский"""
+
+    new_list = []
+    for x in old_list:
+        if isinstance(x, (list, tuple)):
+            new_list += make_list_flat(x)
+        else:
+            new_list.append(x)
+    return new_list
+
+
+def current_datetime(days: int = 0, hours: int = 0, minutes: int = 0, tz: str = "Europe/Moscow") -> datetime:
+    """Возвращает сегодняшний datetime с учётом времненной зоны, по умолчанию tz Мск."""
+
+    delta = timedelta(days=days, hours=hours, minutes=minutes)
+    tz = pytz.timezone(tz)
+    now = datetime.now(tz) + delta
+    return now
+
+
+def current_datetime_formatted(str_type: int = None, minus_days: int = 0, plus_days: int = 0) -> str:
+    """Возвращает сегодняшнюю дату строкой"""
+
+    if str_type == 1:
+        ft = '%d.%m.%Y'
+    elif str_type == 2:
+        ft = '%Y-%m-%d %H:%M:%S'
+    elif str_type == 3:
+        ft = '%d_%m_%Y'
+    elif str_type == 4:
+        ft = '%H:%M:%S'
+    elif str_type == 5:
+        ft = '%H'
+    elif str_type == 6:
+        ft = '%Y-%m-%d'
+    elif str_type == 7:
+        ft = '%d_%m_%y'
+    else:
+        ft = '%d.%m.%Y %H:%M:%S'
+
+    return (current_datetime() - timedelta(days=minus_days) + timedelta(days=plus_days)).strftime(ft)
+
+
+def string_to_datetime(date_string: str, date_format: str = '%Y-%m-%d %H:%M:%S'):
+    """Перевод строкового пердставления даты в datetime"""
+    return datetime.strptime(date_string, date_format)
+
+
+def seconds_to_time(seconds: int, time_format: str = 'short') -> str:
+    """Конвертация секунд в `ЧЧ:ММ:СС`
+
+    :param seconds: количество секунд
+    :param time_format: 'long' "%02d:%02d:%02d", 'short' "%02d:%02d"
+    """
+
+    seconds = seconds % (24 * 3600)
+    hours = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+    if time_format == 'long':
+        return "%02d:%02d:%02d" % (hours, minutes, seconds)
+    if time_format == 'short':
+        return "%02d:%02d" % (hours, minutes)
+
+
 if __name__ == '__main__':
-    print(phone_cleaner('8(926) 477-13-62'))
+    print(divide_list([89264771362, '45555', 45646666, 'fds5555'], 1))
