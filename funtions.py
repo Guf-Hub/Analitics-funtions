@@ -12,13 +12,13 @@ def write_csv(file_name: str, row):
         writer.writerow([row])
 
 
-def get_phones_from_file(file_name: str, save_as: str = 'phones.csv'):
+def get_and_save_phones(file_name: str, save_as: str = 'phones.csv'):
+    """Получить сотовые телефоны из файла и записать в файл phones.csv"""
 
     with open(file_name, 'r') as file:
         text = file.read()
         text = text.replace('+7', '7')
         text = re.sub(r'[().+-]', '', text).replace(' ', '').split(sep=None)
-        print(text)
 
     text = ' '.join(text)
     phones = re.findall(r"[\+\(]?[7-9][0-9.\-\(\)]{8,}[0-9]", text)
@@ -63,17 +63,23 @@ def get_phones(string: str = None, file_name: str = None) -> list:
         return list(set(result))
 
 
-def get_mails(string: str = None, regex: bool = False, file_name: str = None) -> list:
+def get_mails(string: str = None, single: bool = False, regex: bool = False, file_name: str = None):
     """Получение e-mail из текстовой строки или файла(-ов)
 
     :param string: строка текста
+    :param single: поиск первого значения
     :param regex: True используется re для поиска в строке, False find
     :param file_name: путь к файлу, для поиска в файле
     """
 
     mails = []
 
-    if string and not regex:
+    if string and not regex and single:
+        list_rom_string = string.replace('\n', ' ').split(' ')
+        for item in list_rom_string:
+            if item.find('@') > 0:
+                return item
+    elif string and not regex and not single:
         list_rom_string = string.replace('\n', ' ').split(' ')
         for item in list_rom_string:
             if item.find('@') > 0:
@@ -99,4 +105,4 @@ def get_mails(string: str = None, regex: bool = False, file_name: str = None) ->
 
 
 if __name__ == '__main__':
-    get_phones_from_file('examples/example phones.csv')
+    get_and_save_phones('examples/resume2.txt')
