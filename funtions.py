@@ -37,6 +37,27 @@ def get_and_save_phones(file_name: str, save_as: str = 'phones.csv'):
         write_csv(file_name=save_as, row=item)
 
 
+def phone_cleaner(phone: str, prefix: str = '7'):
+    """Функция очистки номера сотового телефона от лишних символов, с заменой первой цифры.
+
+    :param phone: строка с номером телефона
+    :param prefix: начальный символ номера телефона '8' или '7' (по умолчанию) на выходе
+    """
+
+    clear_phone = ''
+    for digit in phone:
+        if digit in '1,2,3,4,5,6,7,8,9,0':
+            clear_phone += digit
+
+    if len(clear_phone) != 11:
+        return f'Не верный номер телефона {clear_phone}, должно быть 11 цифр!'
+
+    if clear_phone[0] != prefix:
+        return f'{prefix}{clear_phone[1:]}'
+    else:
+        return clear_phone
+
+
 def get_phones(string: str = None, file_name: str = None) -> list:
     """Получение телефонов из текстовой строки или файла(-ов)
 
@@ -79,12 +100,14 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
         for item in list_rom_string:
             if item.find('@') > 0:
                 return item
+
     elif string and not regex and not single:
         list_rom_string = string.replace('\n', ' ').split(' ')
         for item in list_rom_string:
             if item.find('@') > 0:
                 mails.append(item)
         return list(set(mails))
+
     elif regex:
         return list(set(re.findall(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+', string)))
 
@@ -92,6 +115,7 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
         with open(file_name, 'r') as f:
             file_text = f.read()
             return list(set(re.findall(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+', file_text)))
+
     else:
         for file in glob.glob('*.txt'):
             with open(file, 'r') as f:
@@ -105,4 +129,4 @@ def get_mails(string: str = None, single: bool = False, regex: bool = False, fil
 
 
 if __name__ == '__main__':
-    get_and_save_phones('examples/resume2.txt')
+    print(phone_cleaner('8(926) 477-13-62'))
